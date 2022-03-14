@@ -21,7 +21,10 @@
     <ClCompile Include="src\MP3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MP3Metadata.cpp">
+    <ClCompile Include="src\AudioMetadata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +35,13 @@
     <ClInclude Include="include\MP3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\MP3Metadata.h">
+    <ClInclude Include="include\AudioMetadata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\MP3Play.h">
+    <ClInclude Include="include\AudioPlay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

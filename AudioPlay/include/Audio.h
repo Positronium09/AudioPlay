@@ -1,14 +1,14 @@
 #pragma once
 
-#include "MP3Play.h"
+#include "AudioPlay.h"
 
 #define MP3_E_CLOSED _HRESULT_TYPEDEF_(0x80080000L)
 
 
-namespace MP3Play
+namespace AudioPlay
 {
-	class MP3Metadata;
-	enum class MP3States
+	class AudioMetadata;
+	enum class AudioStates
 	{
 		Ready,
 		Starting,
@@ -22,14 +22,14 @@ namespace MP3Play
 		Closed
 	};
 
-	class MP3 : public IMFAsyncCallback
+	class Audio : public IMFAsyncCallback
 	{
 		using milliseconds = std::chrono::milliseconds;
 
 		private:
 		ULONG referenceCount;
 
-		volatile MP3States state;
+		volatile AudioStates state;
 		
 		LPWCH filepath;
 		
@@ -58,12 +58,12 @@ namespace MP3Play
 		virtual HRESULT OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionClosed(_In_ comptr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		MP3();
+		Audio();
 
 		public:
-		virtual ~MP3();
+		virtual ~Audio();
 
-		static HRESULT CreateMP3(_In_ LPCWCH path, _COM_Outptr_ MP3** pPtrMp3);
+		static HRESULT CreateAudio(_In_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3);
 
 #pragma region IMPLEMENT_IUnknown
 
@@ -78,14 +78,14 @@ namespace MP3Play
 
 #pragma region IMPLEMENT IMFAsyncCallback
 
-		STDMETHODIMP GetParameters(DWORD* pdwFlags, DWORD* pdwQueue) { return E_NOTIMPL; }
+		STDMETHODIMP GetParameters(DWORD* pdwFlags, DWORD* pdwQueue) { UNREFERENCED_PARAMETER(pdwFlags); UNREFERENCED_PARAMETER(pdwQueue); return E_NOTIMPL; }
 		STDMETHODIMP Invoke(IMFAsyncResult* asyncResult);
 
 #pragma endregion
 
-		const MP3Metadata GetMetadata();
+		const AudioMetadata GetMetadata();
 
-		MP3States GetState() { return state; }
+		AudioStates GetState() { return state; }
 		HRESULT OpenFile(_In_ LPCWCH path);
 		HRESULT CloseFile();
 		// Use CoTaskMemFree when you are done with the pointer

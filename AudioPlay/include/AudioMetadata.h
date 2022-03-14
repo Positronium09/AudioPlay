@@ -1,23 +1,23 @@
 #pragma once
 
-#include "MP3Play.h"
+#include "AudioPlay.h"
 
 #include <wincodec.h>
 
 
-namespace MP3Play
+namespace AudioPlay
 {
-	class MP3Metadata
+	class AudioMetadata
 	{
-		friend class MP3;
+		friend class Audio;
 
 		comptr<IPropertyStore> propertyStore;
 
 		protected:
-		MP3Metadata(comptr<IMFMediaSource>& mediaSource);
+		AudioMetadata(comptr<IMFMediaSource>& mediaSource);
 
 		public:
-		virtual ~MP3Metadata();
+		virtual ~AudioMetadata();
 
 		// Use CoTaskMemFree when you are done with the pointer
 		HRESULT GetTitle(_Outref_result_maybenull_ LPWCH& title) const;

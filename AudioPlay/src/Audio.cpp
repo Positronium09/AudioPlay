@@ -1,5 +1,5 @@
-#include "MP3.h"
-#include "MP3Metadata.h"
+#include "Audio.h"
+#include "AudioMetadata.h"
 
 #include <strsafe.h>
 
@@ -11,7 +11,7 @@
 #define HR_FAIL_ACTION(hresult, action) if (FAILED(hresult)) { action; return hresult; }
 #define HR_FAIL(hresult) if (FAILED(hresult)) { return hresult; }
 
-#define CHECK_CLOSED if (state == MP3States::Closed) { return MP3_E_CLOSED; }
+#define CHECK_CLOSED if (state == AudioStates::Closed) { return MP3_E_CLOSED; }
 
 
 using std::chrono::nanoseconds;
@@ -41,7 +41,7 @@ using namespace std::chrono_literals;
 
 #pragma warning (push)
 #pragma warning (disable: 6388 28196)
-HRESULT MP3Play::MP3::CreateMP3(_In_ LPCWCH path, _COM_Outptr_ MP3** pPtrMp3)
+HRESULT AudioPlay::Audio::CreateAudio(_In_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3)
 {
 	HRESULT hr = S_OK;
 
@@ -50,7 +50,7 @@ HRESULT MP3Play::MP3::CreateMP3(_In_ LPCWCH path, _COM_Outptr_ MP3** pPtrMp3)
 		return E_INVALIDARG;
 	}
 
-	MP3* mp3 = new MP3();
+	Audio* mp3 = new Audio();
 
 	hr = mp3->OpenFile(path);
 
@@ -60,20 +60,20 @@ HRESULT MP3Play::MP3::CreateMP3(_In_ LPCWCH path, _COM_Outptr_ MP3** pPtrMp3)
 }
 #pragma warning (pop)
 
-const MP3Play::MP3Metadata MP3Play::MP3::GetMetadata()
+const AudioPlay::AudioMetadata AudioPlay::Audio::GetMetadata()
 {
-	return MP3Play::MP3Metadata(mediaSource);
+	return AudioPlay::AudioMetadata(mediaSource);
 }
 
-MP3Play::MP3::MP3() :
-	referenceCount(1), state(MP3States::Closed), filepath(nullptr), clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE)
+AudioPlay::Audio::Audio() :
+	referenceCount(1), state(AudioStates::Closed), filepath(nullptr), clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE)
 {
 	InitializeCriticalSection(&criticalSection);
 
 	closeEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 }
 
-MP3Play::MP3::~MP3()
+AudioPlay::Audio::~Audio()
 {
 	Stop();
 	CloseFile();
@@ -84,7 +84,7 @@ MP3Play::MP3::~MP3()
 }
 
 
-HRESULT MP3Play::MP3::CreateTopology(_In_ comptr<IMFTopology>& topology, _In_ comptr<IMFPresentationDescriptor>& presentationDescriptor)
+HRESULT AudioPlay::Audio::CreateTopology(_In_ comptr<IMFTopology>& topology, _In_ comptr<IMFPresentationDescriptor>& presentationDescriptor)
 {
 	comptr<IMFStreamDescriptor> streamDescriptor;
 	comptr<IMFTopologyNode> sourceNode;
@@ -141,7 +141,7 @@ HRESULT MP3Play::MP3::CreateTopology(_In_ comptr<IMFTopology>& topology, _In_ co
 	return hr;
 }
 
-HRESULT MP3Play::MP3::CreateMediaSource(_In_ LPCWCH path)
+HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 {
 	comptr<IMFSourceResolver> sourceResolver;
 
@@ -156,7 +156,7 @@ HRESULT MP3Play::MP3::CreateMediaSource(_In_ LPCWCH path)
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OpenFile(_In_ LPCWCH path)
+HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 {
 	comptr<IMFTopology> topology;
 	comptr<IMFPresentationDescriptor> presentationDescriptor;
@@ -164,23 +164,23 @@ HRESULT MP3Play::MP3::OpenFile(_In_ LPCWCH path)
 	HRESULT hr = S_OK;
 
 	
-	if (state != MP3States::Closed)
+	if (state != AudioStates::Closed)
 	{
-		hr = CloseFile(); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+		hr = CloseFile(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 	}
 
-	hr = MFCreateTopology(topology.put()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = MFCreateTopology(topology.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = MFCreateMediaSession(nullptr, mediaSession.put()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = MFCreateMediaSession(nullptr, mediaSession.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = mediaSession->BeginGetEvent(static_cast<IMFAsyncCallback*>(this), nullptr); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = mediaSession->BeginGetEvent(static_cast<IMFAsyncCallback*>(this), nullptr); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = CreateMediaSource(path); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = CreateMediaSource(path); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	mediaSource->CreatePresentationDescriptor(presentationDescriptor.put()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
-	hr = CreateTopology(topology, presentationDescriptor); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	mediaSource->CreatePresentationDescriptor(presentationDescriptor.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = CreateTopology(topology, presentationDescriptor); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = mediaSession->SetTopology(NULL, topology.get()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = mediaSession->SetTopology(NULL, topology.get()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 
 	SIZE_T length;
@@ -196,20 +196,20 @@ HRESULT MP3Play::MP3::OpenFile(_In_ LPCWCH path)
 	}
 
 
-	state = MP3States::Opening;
+	state = AudioStates::Opening;
 
 	return hr;
 }
-HRESULT MP3Play::MP3::CloseFile()
+HRESULT AudioPlay::Audio::CloseFile()
 {
 	HRESULT hr = S_OK;
 
-	if (state == MP3States::Closed)
+	if (state == AudioStates::Closed)
 	{
 		return hr;
 	}
 
-	state = MP3States::Closing;
+	state = AudioStates::Closing;
 
 	hr = mediaSession->Close();
 
@@ -233,12 +233,12 @@ HRESULT MP3Play::MP3::CloseFile()
 	}
 	filepath = nullptr;
 
-	state = MP3States::Closed;
+	state = AudioStates::Closed;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
+HRESULT AudioPlay::Audio::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
 {
 	if (filepath == nullptr)
 	{
@@ -262,7 +262,7 @@ HRESULT MP3Play::MP3::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
 	return hr;
 }
 
-HRESULT MP3Play::MP3::Start()
+HRESULT AudioPlay::Audio::Start()
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
@@ -276,11 +276,11 @@ HRESULT MP3Play::MP3::Start()
 
 	PropVariantClear(&var);
 
-	state = MP3States::Starting;
+	state = AudioStates::Starting;
 
 	return hr;
 }
-HRESULT MP3Play::MP3::Start(_In_ const milliseconds position)
+HRESULT AudioPlay::Audio::Start(_In_ const milliseconds position)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
@@ -295,37 +295,37 @@ HRESULT MP3Play::MP3::Start(_In_ const milliseconds position)
 
 	PropVariantClear(&var);
 
-	state = MP3States::Starting;
+	state = AudioStates::Starting;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::Pause()
+HRESULT AudioPlay::Audio::Pause()
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
 	hr = mediaSession->Pause();
 
-	state = MP3States::Pausing;
+	state = AudioStates::Pausing;
 
 	return hr;
 
 }
 
-HRESULT MP3Play::MP3::Stop()
+HRESULT AudioPlay::Audio::Stop()
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
 	hr = mediaSession->Stop();
 
-	state = MP3States::Stopping;
+	state = AudioStates::Stopping;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::Seek(_In_ const milliseconds position)
+HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
@@ -340,8 +340,8 @@ HRESULT MP3Play::MP3::Seek(_In_ const milliseconds position)
 
 	PropVariantClear(&var);
 
-	if (state == MP3States::Paused || state == MP3States::Pausing ||
-		state == MP3States::Stopped || state == MP3States::Stopping)
+	if (state == AudioStates::Paused || state == AudioStates::Pausing ||
+		state == AudioStates::Stopped || state == AudioStates::Stopping)
 	{
 		hr = mediaSession->Pause();
 	}
@@ -349,14 +349,14 @@ HRESULT MP3Play::MP3::Seek(_In_ const milliseconds position)
 	return hr;
 }
 
-HRESULT MP3Play::MP3::GetPosition(_Out_ milliseconds& position)
+HRESULT AudioPlay::Audio::GetPosition(_Out_ milliseconds& position)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
 	MFTIME mfTime = -1;
 
-	if (state == MP3States::Opening || state == MP3States::Closed || state == MP3States::Closing)
+	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
 		position = milliseconds{ -1 };
 		return E_FAIL;
@@ -368,14 +368,14 @@ HRESULT MP3Play::MP3::GetPosition(_Out_ milliseconds& position)
 
 	return hr;
 }
-HRESULT MP3Play::MP3::GetDuration(_Out_ milliseconds& duration)
+HRESULT AudioPlay::Audio::GetDuration(_Out_ milliseconds& duration)
 {
 	CHECK_CLOSED;
 	comptr<IMFPresentationDescriptor> presentationDescriptor;
 
 	HRESULT hr = S_OK;
 
-	if (state == MP3States::Opening || state == MP3States::Closed || state == MP3States::Closing)
+	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
 		duration = milliseconds{ -1 };
 		return E_FAIL;
@@ -392,12 +392,12 @@ HRESULT MP3Play::MP3::GetDuration(_Out_ milliseconds& duration)
 	return hr;
 }
 
-HRESULT MP3Play::MP3::GetVolume(_Out_ float* volume)
+HRESULT AudioPlay::Audio::GetVolume(_Out_ float* volume)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	if (state == MP3States::Opening || state == MP3States::Closed || state == MP3States::Closing)
+	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
 		(*volume) = -1.0f;
 		return E_FAIL;
@@ -407,12 +407,12 @@ HRESULT MP3Play::MP3::GetVolume(_Out_ float* volume)
 
 	return hr;
 }
-HRESULT MP3Play::MP3::SetVolume(_In_ const float volume)
+HRESULT AudioPlay::Audio::SetVolume(_In_ const float volume)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	if (state == MP3States::Opening || state == MP3States::Closed || state == MP3States::Closing)
+	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
 		return E_FAIL;
 	}
@@ -421,12 +421,12 @@ HRESULT MP3Play::MP3::SetVolume(_In_ const float volume)
 	return hr;
 }
 
-HRESULT MP3Play::MP3::GetMute(_Out_ BOOL* mute)
+HRESULT AudioPlay::Audio::GetMute(_Out_ BOOL* mute)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	if (state == MP3States::Opening || state == MP3States::Closed || state == MP3States::Closing)
+	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
 		(*mute) = FALSE;
 		return E_FAIL;
@@ -436,12 +436,12 @@ HRESULT MP3Play::MP3::GetMute(_Out_ BOOL* mute)
 
 	return hr;
 }
-HRESULT MP3Play::MP3::SetMute(_In_ const BOOL mute)
+HRESULT AudioPlay::Audio::SetMute(_In_ const BOOL mute)
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	if (state == MP3States::Opening || state == MP3States::Closed || state == MP3States::Closing)
+	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
 		return E_FAIL;
 	}
@@ -453,13 +453,13 @@ HRESULT MP3Play::MP3::SetMute(_In_ const BOOL mute)
 
 #pragma region IMPLEMET_IUnknown
 
-STDMETHODIMP_(ULONG) MP3Play::MP3::AddRef()
+STDMETHODIMP_(ULONG) AudioPlay::Audio::AddRef()
 {
 	InterlockedIncrement(&referenceCount);
 	return referenceCount;
 }
 
-STDMETHODIMP_(ULONG) MP3Play::MP3::Release()
+STDMETHODIMP_(ULONG) AudioPlay::Audio::Release()
 {
 	ULONG newRefCount = InterlockedDecrement(&referenceCount);
 
@@ -471,7 +471,7 @@ STDMETHODIMP_(ULONG) MP3Play::MP3::Release()
 	return newRefCount;
 }
 
-STDMETHODIMP MP3Play::MP3::QueryInterface(REFIID riid, _COM_Outptr_ void** pPtr)
+STDMETHODIMP AudioPlay::Audio::QueryInterface(REFIID riid, _COM_Outptr_ void** pPtr)
 {
 	if (riid == IID_IUnknown)
 	{
@@ -493,7 +493,7 @@ STDMETHODIMP MP3Play::MP3::QueryInterface(REFIID riid, _COM_Outptr_ void** pPtr)
 
 #pragma endregion
 
-STDMETHODIMP MP3Play::MP3::Invoke(IMFAsyncResult* asyncResult)
+STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 {
 	AutoCriticalSection section(&criticalSection);
 
@@ -564,8 +564,10 @@ STDMETHODIMP MP3Play::MP3::Invoke(IMFAsyncResult* asyncResult)
 
 #pragma region EVENT_HANDLERS
 
-HRESULT MP3Play::MP3::OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
+	UNREFERENCED_PARAMETER(mediaEvent);
+
 	HRESULT hr = S_OK;
 
 	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(presentationClock.put())); HR_FAIL(hr);
@@ -573,58 +575,67 @@ HRESULT MP3Play::MP3::OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& mediaEv
 
 	if (volumeControlPresent)
 	{
-		state = MP3States::Ready;
+		state = AudioStates::Ready;
 	}
 	
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMESessionCapabilitiesChanged(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
+	UNREFERENCED_PARAMETER(mediaEvent);
+
 	HRESULT hr = S_OK;
 
 	hr = MFGetService(mediaSession.get(), MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(simpleAudioVolume.put())); HR_FAIL(hr);
 	
 	if (!volumeControlPresent && clockPresent)
 	{
-		state = MP3States::Ready;
+		state = AudioStates::Ready;
 	}
 	volumeControlPresent = true;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMESessionStarted(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionStarted(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
+	UNREFERENCED_PARAMETER(mediaEvent);
+
 	HRESULT hr = S_OK;
 
-	state = MP3States::Started;
+	state = AudioStates::Started;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMESessionPaused(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionPaused(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
+	UNREFERENCED_PARAMETER(mediaEvent);
+
 	HRESULT hr = S_OK;
 
-	state = MP3States::Paused;
+	state = AudioStates::Paused;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMESessionStopped(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionStopped(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
+	UNREFERENCED_PARAMETER(mediaEvent);
+
 	HRESULT hr = S_OK;
 
-	state = MP3States::Stopped;
+	state = AudioStates::Stopped;
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
-	HRESULT hr = S_OK;
+	UNREFERENCED_PARAMETER(mediaEvent);
 
+	HRESULT hr = S_OK;
 
 	if (looping)
 	{
@@ -632,24 +643,26 @@ HRESULT MP3Play::MP3::OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEvent)
 	}
 	else
 	{
-		state = MP3States::Stopped;
+		state = AudioStates::Stopped;
 	}
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMESessionClosed(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionClosed(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
+	UNREFERENCED_PARAMETER(mediaEvent);
+
 	HRESULT hr = S_OK;
 
-	state = MP3States::Closed;
+	state = AudioStates::Closed;
 
 	SetEvent(closeEvent);
 
 	return hr;
 }
 
-HRESULT MP3Play::MP3::OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaEvent)
 {
 	comptr<IMFTopology> topology;
 	comptr<IMFPresentationDescriptor> presentationDescriptor;
@@ -661,17 +674,17 @@ HRESULT MP3Play::MP3::OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaEvent
 	PropVariantInit(&var);
 	var.vt = VT_UNKNOWN;
 
-	hr = MFCreateTopology(topology.put()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = MFCreateTopology(topology.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = mediaEvent->GetValue(&var); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = mediaEvent->GetValue(&var); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = var.punkVal->QueryInterface(presentationDescriptor.put()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = var.punkVal->QueryInterface(presentationDescriptor.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	CreateTopology(topology, presentationDescriptor); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	CreateTopology(topology, presentationDescriptor); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = mediaSession->SetTopology(NULL, topology.get()); HR_FAIL_ACTION(hr, state = MP3States::Closed);
+	hr = mediaSession->SetTopology(NULL, topology.get()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	state = MP3States::Opening;
+	state = AudioStates::Opening;
 
 	return hr;
 }

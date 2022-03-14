@@ -1,4 +1,4 @@
-#include "MP3Metadata.h"
+#include "AudioMetadata.h"
 
 #include <Propkey.h>
 #include <strsafe.h>
@@ -34,7 +34,7 @@ size_t GetHeaderOffset(const BYTE * data)
 }
 
 
-MP3Play::MP3Metadata::MP3Metadata(comptr<IMFMediaSource>& mediaSource)
+AudioPlay::AudioMetadata::AudioMetadata(comptr<IMFMediaSource>& mediaSource)
 {
 	HRESULT hr = MFGetService(mediaSource.get(), MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(propertyStore.put()));
 	if (FAILED(hr))
@@ -43,17 +43,17 @@ MP3Play::MP3Metadata::MP3Metadata(comptr<IMFMediaSource>& mediaSource)
 	}
 }
 
-MP3Play::MP3Metadata::~MP3Metadata()
+AudioPlay::AudioMetadata::~AudioMetadata()
 {
 	propertyStore = nullptr;
 }
 
-HRESULT MP3Play::MP3Metadata::GetTitle(_Outref_result_maybenull_ LPWCH& title) const
+HRESULT AudioPlay::AudioMetadata::GetTitle(_Outref_result_maybenull_ LPWCH& title) const
 {
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
 
-	SIZE_T length = -1;
+	SIZE_T length = 0;
 	LPWCH titleVal = nullptr;
 
 	PROPVARIANT var;
@@ -78,12 +78,12 @@ HRESULT MP3Play::MP3Metadata::GetTitle(_Outref_result_maybenull_ LPWCH& title) c
 	return hr;
 }
 
-HRESULT MP3Play::MP3Metadata::GetAlbumName(_Outref_result_maybenull_ LPWCH& albumName) const
+HRESULT AudioPlay::AudioMetadata::GetAlbumName(_Outref_result_maybenull_ LPWCH& albumName) const
 {
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
 
-	SIZE_T length = -1;
+	SIZE_T length = 0;
 	LPWCH albumNameVal = nullptr;
 
 	PROPVARIANT var;
@@ -108,12 +108,12 @@ HRESULT MP3Play::MP3Metadata::GetAlbumName(_Outref_result_maybenull_ LPWCH& albu
 	return hr;
 }
 
-HRESULT MP3Play::MP3Metadata::GetArtist(_Outref_result_maybenull_ LPWCH& artist) const
+HRESULT AudioPlay::AudioMetadata::GetArtist(_Outref_result_maybenull_ LPWCH& artist) const
 {
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
 
-	SIZE_T length = -1;
+	SIZE_T length = 0;
 	LPWCH artistVal = nullptr;
 
 	PROPVARIANT var;
@@ -138,7 +138,7 @@ HRESULT MP3Play::MP3Metadata::GetArtist(_Outref_result_maybenull_ LPWCH& artist)
 	return hr;
 }
 
-HRESULT MP3Play::MP3Metadata::GetProperity(_In_ REFPROPERTYKEY properityKey, _Out_ PROPVARIANT& value) const
+HRESULT AudioPlay::AudioMetadata::GetProperity(_In_ REFPROPERTYKEY properityKey, _Out_ PROPVARIANT& value) const
 {
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
@@ -150,7 +150,7 @@ HRESULT MP3Play::MP3Metadata::GetProperity(_In_ REFPROPERTYKEY properityKey, _Ou
 	return hr;
 }
 
-HRESULT MP3Play::MP3Metadata::GetPropertiyKeyByIndex(_In_ DWORD index, _Out_ PROPERTYKEY& value) const
+HRESULT AudioPlay::AudioMetadata::GetPropertiyKeyByIndex(_In_ DWORD index, _Out_ PROPERTYKEY& value) const
 {
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
@@ -160,7 +160,7 @@ HRESULT MP3Play::MP3Metadata::GetPropertiyKeyByIndex(_In_ DWORD index, _Out_ PRO
 	return hr;
 }
 
-HRESULT MP3Play::MP3Metadata::GetProperityCount(_Out_ DWORD& count) const
+HRESULT AudioPlay::AudioMetadata::GetProperityCount(_Out_ DWORD& count) const
 {
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
@@ -172,8 +172,13 @@ HRESULT MP3Play::MP3Metadata::GetProperityCount(_Out_ DWORD& count) const
 
 #pragma warning (push)
 #pragma warning (disable: 6388 28196)
-HRESULT MP3Play::MP3Metadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecode** pPtrthumbnail)
+HRESULT AudioPlay::AudioMetadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecode** pPtrthumbnail)
 {
+	if (pPtrthumbnail == nullptr)
+	{
+		return E_INVALIDARG;
+	}
+
 	comptr<IWICImagingFactory> factory;
 	comptr<IWICStream> stream;
 	comptr<IWICBitmapDecoder> decoder;
@@ -189,14 +194,9 @@ HRESULT MP3Play::MP3Metadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecode** 
 	ULARGE_INTEGER newSize = { 0 };
 	LARGE_INTEGER seekPos = { 0 };
 
-	ULONG read = -1;
-	DWORD written = -1;
+	ULONG read = 0;
+	DWORD written = 0;
 
-
-	if (pPtrthumbnail == nullptr)
-	{
-		return E_INVALIDARG;
-	}
 	*pPtrthumbnail = nullptr;
 
 	PROPVARIANT thumbnail;

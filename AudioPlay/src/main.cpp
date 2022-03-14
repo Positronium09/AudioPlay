@@ -8,8 +8,8 @@
 #include <shlwapi.h>
 #include <winrt/base.h>
 
-#include "MP3.h"
-#include "MP3Metadata.h"
+#include "Audio.h"
+#include "AudioMetadata.h"
 
 #pragma comment (lib, "Shlwapi.lib")
 
@@ -27,16 +27,16 @@ using std::chrono::duration_cast;
 
 volatile BOOL running = TRUE;
 
-void printDuration(comptr<MP3Play::MP3>* mp3)
+void printDuration(comptr<AudioPlay::Audio>* mp3)
 {
 	while ((*mp3) && running)
 	{
-		if ((*mp3)->GetState() != MP3Play::MP3States::Started)
+		if ((*mp3)->GetState() != AudioPlay::AudioStates::Started)
 		{
 			continue;
 		}
 		milliseconds milliSeconds;
-		HRESULT hr = (*mp3)->GetPosition(milliSeconds);
+		(*mp3)->GetPosition(milliSeconds);
 
 		seconds second = duration_cast<seconds>(milliSeconds);
 		milliSeconds %= 1000;
@@ -81,7 +81,7 @@ int main()
 {
 	winrt::init_apartment();
 	
-	MP3Play::StartMediaFoundation();
+	AudioPlay::StartMediaFoundation();
 
 	(void)_setmode(_fileno(stdout), _O_U16TEXT);
 	SetConsoleCtrlHandler(CtrlHandle, TRUE);
@@ -109,14 +109,14 @@ int main()
 		}
 
 
-		comptr<MP3Play::MP3> mp3;
+		comptr<AudioPlay::Audio> mp3;
 
-		HRESULT hr = MP3Play::MP3::CreateMP3(file, mp3.put());
+		AudioPlay::Audio::CreateAudio(file, mp3.put());
 
-		while (mp3->GetState() != MP3Play::MP3States::Ready);
+		while (mp3->GetState() != AudioPlay::AudioStates::Ready);
 
 		std::thread t{ printDuration, &mp3 };
-		MP3Play::MP3Metadata metadata = mp3->GetMetadata();
+		AudioPlay::AudioMetadata metadata = mp3->GetMetadata();
 
 		LPCWSTR filename = PathFindFileName(file);
 		SetConsoleTitleW(filename);
@@ -156,7 +156,7 @@ int main()
 
 		HWND console = GetConsoleWindow();
 
-		while ((mp3->GetState() != MP3Play::MP3States::Stopped) && running)
+		while ((mp3->GetState() != AudioPlay::AudioStates::Stopped) && running)
 		{
 			if (GetAsyncKeyState(VK_ESCAPE) & 1 && GetForegroundWindow() == console)
 			{
@@ -174,7 +174,7 @@ int main()
 			{
 				BOOL mute;
 				mp3->GetMute(&mute);
-				mp3->SetMute(!mute);
+				mp3->SetMute((BOOL)!mute); // Abomination to make "Using logical or when bitwise '~' was probably intended" go away
 			}
 			if (GetAsyncKeyState(VK_UP) & 1 && GetForegroundWindow() == console)
 			{
@@ -191,7 +191,7 @@ int main()
 		mp3->CloseFile();
 	}
 
-	MP3Play::ShutdownMediaFoundation();
+	AudioPlay::ShutdownMediaFoundation();
 
 	winrt::uninit_apartment();
 

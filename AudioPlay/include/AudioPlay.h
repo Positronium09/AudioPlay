@@ -7,7 +7,7 @@
 #include <winrt/base.h>
 
 
-namespace MP3Play
+namespace AudioPlay
 {
 	template<class T>
 	using comptr = winrt::com_ptr<T>;
