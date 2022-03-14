@@ -27,7 +27,7 @@ using std::chrono::duration_cast;
 
 volatile BOOL running = TRUE;
 
-void printDuration(comptr<AudioPlay::Audio>* mp3)
+void PrintDuration(comptr<AudioPlay::Audio>* mp3)
 {
 	while ((*mp3) && running)
 	{
@@ -52,11 +52,11 @@ void printDuration(comptr<AudioPlay::Audio>* mp3)
 		BOOL mute = FALSE;
 		mp3->get()->GetMute(&mute);
 
-		std::wcout << 
-			hour.count() << " Hours : " << 
-			std::setw(2) << minute.count() << " Minutes : " << 
-			std::setw(2) << second.count() << " Seconds : " << 
-			std::setw(4) << milliSeconds.count() << " Milliseconds" << 
+		std::wcout <<
+			hour.count() << " Hours : " <<
+			std::setw(2) << minute.count() << " Minutes : " <<
+			std::setw(2) << second.count() << " Seconds : " <<
+			std::setw(4) << milliSeconds.count() << " Milliseconds" <<
 			" Volume: " << std::setw(3) << std::setprecision(1) << volume <<
 			" Mute: " << std::setw(1) << mute <<
 			'\r';
@@ -80,7 +80,7 @@ BOOL WINAPI CtrlHandle(_In_ DWORD dwCtrlType)
 int main()
 {
 	winrt::init_apartment();
-	
+
 	AudioPlay::StartMediaFoundation();
 
 	(void)_setmode(_fileno(stdout), _O_U16TEXT);
@@ -115,7 +115,7 @@ int main()
 
 		while (mp3->GetState() != AudioPlay::AudioStates::Ready);
 
-		std::thread t{ printDuration, &mp3 };
+		std::thread t{ PrintDuration, &mp3 };
 		AudioPlay::AudioMetadata metadata = mp3->GetMetadata();
 
 		LPCWSTR filename = PathFindFileName(file);
