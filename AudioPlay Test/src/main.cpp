@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <chrono>
 #include <thread>
 #include <iomanip>
@@ -6,15 +7,11 @@
 #include <fcntl.h>
 #include <windows.h>
 #include <shlwapi.h>
-#include <winrt/base.h>
 
 #include "Audio.h"
 #include "AudioMetadata.h"
 
 #pragma comment (lib, "Shlwapi.lib")
-
-template<class T>
-using comptr = winrt::com_ptr<T>;
 
 using namespace std::chrono_literals;
 using std::chrono::milliseconds;
@@ -24,19 +21,20 @@ using std::chrono::minutes;
 using std::chrono::hours;
 using std::chrono::duration_cast;
 
+using AudioPlay::comptr;
 
 volatile BOOL running = TRUE;
 
-void PrintDuration(comptr<AudioPlay::Audio>* mp3)
+void PrintDuration(std::reference_wrapper<comptr<AudioPlay::Audio>> mp3)
 {
-	while ((*mp3) && running)
+	while (mp3.get() && running)
 	{
-		if ((*mp3)->GetState() != AudioPlay::AudioStates::Started)
+		if (mp3.get()->GetState() != AudioPlay::AudioStates::Started)
 		{
 			continue;
 		}
 		milliseconds milliSeconds;
-		(*mp3)->GetPosition(milliSeconds);
+		mp3.get()->GetPosition(milliSeconds);
 
 		seconds second = duration_cast<seconds>(milliSeconds);
 		milliSeconds %= 1000;
@@ -48,9 +46,9 @@ void PrintDuration(comptr<AudioPlay::Audio>* mp3)
 		minute %= 60;
 
 		float volume = -1.0f;
-		mp3->get()->GetVolume(&volume);
+		mp3.get()->GetVolume(&volume);
 		BOOL mute = FALSE;
-		mp3->get()->GetMute(&mute);
+		mp3.get()->GetMute(&mute);
 
 		std::wcout <<
 			hour.count() << " Hours : " <<
@@ -79,8 +77,6 @@ BOOL WINAPI CtrlHandle(_In_ DWORD dwCtrlType)
 
 int main()
 {
-	winrt::init_apartment();
-
 	AudioPlay::StartMediaFoundation();
 
 	(void)_setmode(_fileno(stdout), _O_U16TEXT);
@@ -111,11 +107,11 @@ int main()
 
 		comptr<AudioPlay::Audio> mp3;
 
-		AudioPlay::Audio::CreateAudio(file, mp3.put());
+		AudioPlay::Audio::CreateAudio(file, &mp3);
 
 		while (mp3->GetState() != AudioPlay::AudioStates::Ready);
 
-		std::thread t{ PrintDuration, &mp3 };
+		std::thread t{ PrintDuration, std::ref(mp3) };
 		AudioPlay::AudioMetadata metadata = mp3->GetMetadata();
 
 		LPCWSTR filename = PathFindFileName(file);
@@ -192,8 +188,6 @@ int main()
 	}
 
 	AudioPlay::ShutdownMediaFoundation();
-
-	winrt::uninit_apartment();
 
 	return 0;
 }

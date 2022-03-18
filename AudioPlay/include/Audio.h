@@ -2,6 +2,8 @@
 
 #include "AudioPlay.h"
 
+#include <atlbase.h>
+
 #define MP3_E_CLOSED _HRESULT_TYPEDEF_(0x80080000L)
 
 

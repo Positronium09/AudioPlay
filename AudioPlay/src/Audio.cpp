@@ -104,9 +104,9 @@ HRESULT AudioPlay::Audio::CreateTopology(_In_ comptr<IMFTopology>& topology, _In
 		comptr<IMFMediaTypeHandler> typeHandler;
 
 		GUID majorType = GUID_NULL;
-		hr = presentationDescriptor->GetStreamDescriptorByIndex(streamIndex, &selected, streamDescriptor.put()); HR_FAIL(hr);
+		hr = presentationDescriptor->GetStreamDescriptorByIndex(streamIndex, &selected, &streamDescriptor); HR_FAIL(hr);
 
-		hr = streamDescriptor->GetMediaTypeHandler(typeHandler.put()); HR_FAIL(hr);
+		hr = streamDescriptor->GetMediaTypeHandler(&typeHandler); HR_FAIL(hr);
 
 		hr = typeHandler->GetMajorType(&majorType); HR_FAIL(hr);
 
@@ -116,27 +116,27 @@ HRESULT AudioPlay::Audio::CreateTopology(_In_ comptr<IMFTopology>& topology, _In
 		}
 	}
 
-	hr = MFCreateAudioRenderer(nullptr, mediaSink.put()); HR_FAIL(hr);
+	hr = MFCreateAudioRenderer(nullptr, &mediaSink); HR_FAIL(hr);
 
-	hr = mediaSink->GetStreamSinkByIndex(streamIndex, streamSink.put()); HR_FAIL(hr);
+	hr = mediaSink->GetStreamSinkByIndex(streamIndex, &streamSink); HR_FAIL(hr);
 
 #pragma region SOURCESTREAM NODE
-	MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE, sourceNode.put()); HR_FAIL(hr);
-	hr = sourceNode->SetUnknown(MF_TOPONODE_SOURCE, mediaSource.get()); HR_FAIL(hr);
-	hr = sourceNode->SetUnknown(MF_TOPONODE_PRESENTATION_DESCRIPTOR, presentationDescriptor.get()); HR_FAIL(hr);
-	hr = sourceNode->SetUnknown(MF_TOPONODE_STREAM_DESCRIPTOR, streamDescriptor.get()); HR_FAIL(hr);
+	MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE, &sourceNode); HR_FAIL(hr);
+	hr = sourceNode->SetUnknown(MF_TOPONODE_SOURCE, mediaSource); HR_FAIL(hr);
+	hr = sourceNode->SetUnknown(MF_TOPONODE_PRESENTATION_DESCRIPTOR, presentationDescriptor); HR_FAIL(hr);
+	hr = sourceNode->SetUnknown(MF_TOPONODE_STREAM_DESCRIPTOR, streamDescriptor); HR_FAIL(hr);
 #pragma endregion
-	hr = topology->AddNode(sourceNode.get()); HR_FAIL(hr);
+	hr = topology->AddNode(sourceNode); HR_FAIL(hr);
 
 #pragma region OUTPUT_NODE
-	hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, outputNode.put()); HR_FAIL(hr);
-	hr = outputNode->SetObject(streamSink.get()); HR_FAIL(hr);
+	hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &outputNode); HR_FAIL(hr);
+	hr = outputNode->SetObject(streamSink); HR_FAIL(hr);
 	hr = outputNode->SetUINT32(MF_TOPONODE_STREAMID, 0); HR_FAIL(hr);
 	hr = outputNode->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE); HR_FAIL(hr);
 #pragma endregion
-	hr = topology->AddNode(outputNode.get()); HR_FAIL(hr);
+	hr = topology->AddNode(outputNode); HR_FAIL(hr);
 
-	hr = sourceNode->ConnectOutput(0, outputNode.get(), 0); HR_FAIL(hr);
+	hr = sourceNode->ConnectOutput(0, outputNode, 0); HR_FAIL(hr);
 
 	return hr;
 }
@@ -147,11 +147,11 @@ HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 
 	HRESULT hr = S_OK;
 
-	hr = MFCreateSourceResolver(sourceResolver.put()); HR_FAIL(hr);
+	hr = MFCreateSourceResolver(&sourceResolver); HR_FAIL(hr);
 
 	MF_OBJECT_TYPE objectType = MF_OBJECT_INVALID;
 	hr = sourceResolver->CreateObjectFromURL(path, MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE, 
-		NULL, &objectType, reinterpret_cast<IUnknown**>(mediaSource.put())); HR_FAIL(hr);
+		NULL, &objectType, reinterpret_cast<IUnknown**>(&mediaSource)); HR_FAIL(hr);
 
 	return hr;
 }
@@ -169,18 +169,18 @@ HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 		hr = CloseFile(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 	}
 
-	hr = MFCreateTopology(topology.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = MFCreateTopology(&topology); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = MFCreateMediaSession(nullptr, mediaSession.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = MFCreateMediaSession(nullptr, &mediaSession); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	hr = mediaSession->BeginGetEvent(static_cast<IMFAsyncCallback*>(this), nullptr); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	hr = CreateMediaSource(path); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	mediaSource->CreatePresentationDescriptor(presentationDescriptor.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	mediaSource->CreatePresentationDescriptor(&presentationDescriptor); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 	hr = CreateTopology(topology, presentationDescriptor); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = mediaSession->SetTopology(NULL, topology.get()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = mediaSession->SetTopology(NULL, topology); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 
 	SIZE_T length;
@@ -380,7 +380,7 @@ HRESULT AudioPlay::Audio::GetDuration(_Out_ milliseconds& duration)
 		duration = milliseconds{ -1 };
 		return E_FAIL;
 	}
-	hr = mediaSource->CreatePresentationDescriptor(presentationDescriptor.put()); HR_FAIL_ACTION(hr, duration = milliseconds{ -1 });
+	hr = mediaSource->CreatePresentationDescriptor(&presentationDescriptor); HR_FAIL_ACTION(hr, duration = milliseconds{ -1 });
 
 	MFTIME mfTime = -1;
 	hr = presentationDescriptor->GetUINT64(MF_PD_DURATION, reinterpret_cast<UINT64*>(&mfTime)); HR_FAIL_ACTION(hr, duration = milliseconds{ -1 });
@@ -503,7 +503,7 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 	HRESULT hr = S_OK;
 
 
-	hr = mediaSession->EndGetEvent(asyncResult, mediaEvent.put()); HR_FAIL(hr);
+	hr = mediaSession->EndGetEvent(asyncResult, &mediaEvent); HR_FAIL(hr);
 
 	hr = mediaEvent->GetType(&mediaEventType);
 	if (SUCCEEDED(hr))
@@ -570,7 +570,7 @@ HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& med
 
 	HRESULT hr = S_OK;
 
-	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(presentationClock.put())); HR_FAIL(hr);
+	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(&presentationClock)); HR_FAIL(hr);
 	clockPresent = true;
 
 	if (volumeControlPresent)
@@ -587,7 +587,7 @@ HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ comptr<IMFMediaEve
 
 	HRESULT hr = S_OK;
 
-	hr = MFGetService(mediaSession.get(), MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(simpleAudioVolume.put())); HR_FAIL(hr);
+	hr = MFGetService(mediaSession, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&simpleAudioVolume)); HR_FAIL(hr);
 	
 	if (!volumeControlPresent && clockPresent)
 	{
@@ -674,15 +674,15 @@ HRESULT AudioPlay::Audio::OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaE
 	PropVariantInit(&var);
 	var.vt = VT_UNKNOWN;
 
-	hr = MFCreateTopology(topology.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = MFCreateTopology(&topology); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	hr = mediaEvent->GetValue(&var); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = var.punkVal->QueryInterface(presentationDescriptor.put()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = var.punkVal->QueryInterface(&presentationDescriptor); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	CreateTopology(topology, presentationDescriptor); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
-	hr = mediaSession->SetTopology(NULL, topology.get()); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
+	hr = mediaSession->SetTopology(NULL, topology); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	state = AudioStates::Opening;
 

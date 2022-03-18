@@ -36,7 +36,7 @@ size_t GetHeaderOffset(const BYTE * data)
 
 AudioPlay::AudioMetadata::AudioMetadata(comptr<IMFMediaSource>& mediaSource)
 {
-	HRESULT hr = MFGetService(mediaSource.get(), MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(propertyStore.put()));
+	HRESULT hr = MFGetService(mediaSource, MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(&propertyStore));
 	if (FAILED(hr))
 	{
 		propertyStore = nullptr;
@@ -239,12 +239,12 @@ HRESULT AudioPlay::AudioMetadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecod
 
 	delete[] data;
 
-	hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(factory.put())); HR_FAIL(hr);
+	hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory)); HR_FAIL(hr);
 
-	hr = factory->CreateStream(stream.put()); HR_FAIL(hr);
+	hr = factory->CreateStream(&stream); HR_FAIL(hr);
 	hr = stream->InitializeFromIStream(thumbnailStream); HR_FAIL(hr);
 
-	hr = factory->CreateDecoderFromStream(stream.get(), nullptr, WICDecodeMetadataCacheOnLoad, decoder.put()); HR_FAIL(hr);
+	hr = factory->CreateDecoderFromStream(stream, nullptr, WICDecodeMetadataCacheOnLoad, &decoder); HR_FAIL(hr);
 
 	hr = decoder->GetFrame(0, pPtrthumbnail); HR_FAIL(hr);
 
