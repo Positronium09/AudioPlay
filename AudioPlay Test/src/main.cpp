@@ -21,11 +21,11 @@ using std::chrono::minutes;
 using std::chrono::hours;
 using std::chrono::duration_cast;
 
-using AudioPlay::comptr;
+using AudioPlay::ComPtr;
 
 volatile BOOL running = TRUE;
 
-void PrintDuration(std::reference_wrapper<comptr<AudioPlay::Audio>> mp3)
+void PrintDuration(std::reference_wrapper<ComPtr<AudioPlay::Audio>> mp3)
 {
 	while (mp3.get() && running)
 	{
@@ -105,7 +105,7 @@ int main()
 		}
 
 
-		comptr<AudioPlay::Audio> mp3;
+		ComPtr<AudioPlay::Audio> mp3;
 
 		AudioPlay::Audio::CreateAudio(file, &mp3);
 

@@ -42,24 +42,24 @@ namespace AudioPlay
 		CRITICAL_SECTION criticalSection;
 		HANDLE closeEvent;
 
-		comptr<IMFMediaSession> mediaSession;
-		comptr<IMFMediaSource> mediaSource;
-		comptr<IMFSimpleAudioVolume> simpleAudioVolume;
-		comptr<IMFPresentationClock> presentationClock;
+		ComPtr<IMFMediaSession> mediaSession;
+		ComPtr<IMFMediaSource> mediaSource;
+		ComPtr<IMFSimpleAudioVolume> simpleAudioVolume;
+		ComPtr<IMFPresentationClock> presentationClock;
 
 		private:
 		HRESULT CreateMediaSource(_In_ LPCWCH path);
-		HRESULT CreateTopology(_In_ comptr<IMFTopology>& topology, _In_ comptr<IMFPresentationDescriptor>& presentationDescriptor);
+		HRESULT CreateTopology(_In_ ComPtr<IMFTopology>& topology, _In_ ComPtr<IMFPresentationDescriptor>& presentationDescriptor);
 
 		protected:
-		virtual HRESULT OnMESessionCapabilitiesChanged(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionStarted(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionPaused(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionStopped(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionClosed(_In_ comptr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionStarted(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionPaused(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionStopped(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionEnded(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMESessionClosed(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
+		virtual HRESULT OnMENewPresentation(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		Audio();
 
 		public:

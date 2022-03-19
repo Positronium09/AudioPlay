@@ -10,7 +10,7 @@
 namespace AudioPlay
 {
 	template<class T>
-	using comptr = CComPtr<T>;
+	using ComPtr = CComPtr<T>;
 
 	inline HRESULT StartMediaFoundation() { return MFStartup(MF_VERSION); }
 	inline HRESULT ShutdownMediaFoundation() { return MFShutdown(); }

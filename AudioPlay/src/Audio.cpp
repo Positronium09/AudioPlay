@@ -84,13 +84,13 @@ AudioPlay::Audio::~Audio()
 }
 
 
-HRESULT AudioPlay::Audio::CreateTopology(_In_ comptr<IMFTopology>& topology, _In_ comptr<IMFPresentationDescriptor>& presentationDescriptor)
+HRESULT AudioPlay::Audio::CreateTopology(_In_ ComPtr<IMFTopology>& topology, _In_ ComPtr<IMFPresentationDescriptor>& presentationDescriptor)
 {
-	comptr<IMFStreamDescriptor> streamDescriptor;
-	comptr<IMFTopologyNode> sourceNode;
-	comptr <IMFTopologyNode> outputNode;
-	comptr<IMFMediaSink> mediaSink;
-	comptr<IMFStreamSink> streamSink;
+	ComPtr<IMFStreamDescriptor> streamDescriptor;
+	ComPtr<IMFTopologyNode> sourceNode;
+	ComPtr <IMFTopologyNode> outputNode;
+	ComPtr<IMFMediaSink> mediaSink;
+	ComPtr<IMFStreamSink> streamSink;
 
 	HRESULT hr = S_OK;
 
@@ -101,7 +101,7 @@ HRESULT AudioPlay::Audio::CreateTopology(_In_ comptr<IMFTopology>& topology, _In
 	hr = presentationDescriptor->GetStreamDescriptorCount(&streamCount); HR_FAIL(hr);
 	for (streamIndex; streamIndex < streamCount; streamIndex++)
 	{
-		comptr<IMFMediaTypeHandler> typeHandler;
+		ComPtr<IMFMediaTypeHandler> typeHandler;
 
 		GUID majorType = GUID_NULL;
 		hr = presentationDescriptor->GetStreamDescriptorByIndex(streamIndex, &selected, &streamDescriptor); HR_FAIL(hr);
@@ -143,7 +143,7 @@ HRESULT AudioPlay::Audio::CreateTopology(_In_ comptr<IMFTopology>& topology, _In
 
 HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 {
-	comptr<IMFSourceResolver> sourceResolver;
+	ComPtr<IMFSourceResolver> sourceResolver;
 
 	HRESULT hr = S_OK;
 
@@ -158,8 +158,8 @@ HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 
 HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 {
-	comptr<IMFTopology> topology;
-	comptr<IMFPresentationDescriptor> presentationDescriptor;
+	ComPtr<IMFTopology> topology;
+	ComPtr<IMFPresentationDescriptor> presentationDescriptor;
 
 	HRESULT hr = S_OK;
 
@@ -371,7 +371,7 @@ HRESULT AudioPlay::Audio::GetPosition(_Out_ milliseconds& position)
 HRESULT AudioPlay::Audio::GetDuration(_Out_ milliseconds& duration)
 {
 	CHECK_CLOSED;
-	comptr<IMFPresentationDescriptor> presentationDescriptor;
+	ComPtr<IMFPresentationDescriptor> presentationDescriptor;
 
 	HRESULT hr = S_OK;
 
@@ -497,7 +497,7 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 {
 	AutoCriticalSection section(&criticalSection);
 
-	comptr<IMFMediaEvent> mediaEvent;
+	ComPtr<IMFMediaEvent> mediaEvent;
 	MediaEventType mediaEventType;
 
 	HRESULT hr = S_OK;
@@ -564,12 +564,13 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 
 #pragma region EVENT_HANDLERS
 
-HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
 	HRESULT hr = S_OK;
 
+	presentationClock = nullptr;
 	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(&presentationClock)); HR_FAIL(hr);
 	clockPresent = true;
 
@@ -581,12 +582,13 @@ HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ comptr<IMFMediaEvent>& med
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
 	HRESULT hr = S_OK;
 
+	simpleAudioVolume = nullptr;
 	hr = MFGetService(mediaSession, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&simpleAudioVolume)); HR_FAIL(hr);
 	
 	if (!volumeControlPresent && clockPresent)
@@ -598,7 +600,7 @@ HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ comptr<IMFMediaEve
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMESessionStarted(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionStarted(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
@@ -609,7 +611,7 @@ HRESULT AudioPlay::Audio::OnMESessionStarted(_In_ comptr<IMFMediaEvent>& mediaEv
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMESessionPaused(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionPaused(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
@@ -620,7 +622,7 @@ HRESULT AudioPlay::Audio::OnMESessionPaused(_In_ comptr<IMFMediaEvent>& mediaEve
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMESessionStopped(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionStopped(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
@@ -631,7 +633,7 @@ HRESULT AudioPlay::Audio::OnMESessionStopped(_In_ comptr<IMFMediaEvent>& mediaEv
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionEnded(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
@@ -649,7 +651,7 @@ HRESULT AudioPlay::Audio::OnMESessionEnded(_In_ comptr<IMFMediaEvent>& mediaEven
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMESessionClosed(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMESessionClosed(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
 
@@ -662,10 +664,10 @@ HRESULT AudioPlay::Audio::OnMESessionClosed(_In_ comptr<IMFMediaEvent>& mediaEve
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::OnMENewPresentation(_In_ comptr<IMFMediaEvent>& mediaEvent)
+HRESULT AudioPlay::Audio::OnMENewPresentation(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
-	comptr<IMFTopology> topology;
-	comptr<IMFPresentationDescriptor> presentationDescriptor;
+	ComPtr<IMFTopology> topology;
+	ComPtr<IMFPresentationDescriptor> presentationDescriptor;
 
 	HRESULT hr = S_OK;
 

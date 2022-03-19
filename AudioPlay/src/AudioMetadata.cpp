@@ -34,7 +34,7 @@ size_t GetHeaderOffset(const BYTE * data)
 }
 
 
-AudioPlay::AudioMetadata::AudioMetadata(comptr<IMFMediaSource>& mediaSource)
+AudioPlay::AudioMetadata::AudioMetadata(ComPtr<IMFMediaSource>& mediaSource)
 {
 	HRESULT hr = MFGetService(mediaSource, MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(&propertyStore));
 	if (FAILED(hr))
@@ -179,9 +179,9 @@ HRESULT AudioPlay::AudioMetadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecod
 		return E_INVALIDARG;
 	}
 
-	comptr<IWICImagingFactory> factory;
-	comptr<IWICStream> stream;
-	comptr<IWICBitmapDecoder> decoder;
+	ComPtr<IWICImagingFactory> factory;
+	ComPtr<IWICStream> stream;
+	ComPtr<IWICBitmapDecoder> decoder;
 
 	IStream* thumbnailStream;
 

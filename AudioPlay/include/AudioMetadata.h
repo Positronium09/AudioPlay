@@ -11,10 +11,10 @@ namespace AudioPlay
 	{
 		friend class Audio;
 
-		comptr<IPropertyStore> propertyStore;
+		ComPtr<IPropertyStore> propertyStore;
 
 		protected:
-		AudioMetadata(comptr<IMFMediaSource>& mediaSource);
+		AudioMetadata(ComPtr<IMFMediaSource>& mediaSource);
 
 		public:
 		virtual ~AudioMetadata();
