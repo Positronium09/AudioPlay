@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chrono>
 #include <windows.h>
 #include <mfapi.h>
 #include <mfidl.h>
