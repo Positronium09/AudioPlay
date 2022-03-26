@@ -80,14 +80,18 @@ namespace AudioPlay
 
 #pragma region IMPLEMENT IMFAsyncCallback
 
-		STDMETHODIMP GetParameters(DWORD* pdwFlags, DWORD* pdwQueue) { UNREFERENCED_PARAMETER(pdwFlags); UNREFERENCED_PARAMETER(pdwQueue); return E_NOTIMPL; }
+		STDMETHODIMP GetParameters(DWORD* pdwFlags, DWORD* pdwQueue)
+		{
+			UNREFERENCED_PARAMETER(pdwFlags); UNREFERENCED_PARAMETER(pdwQueue); 
+			return E_NOTIMPL; 
+		}
 		STDMETHODIMP Invoke(IMFAsyncResult* asyncResult);
 
 #pragma endregion
 
-		const AudioMetadata GetMetadata();
+		const AudioMetadata GetMetadata() const;
 
-		AudioStates GetState() { return state; }
+		AudioStates GetState() const { return state; }
 		HRESULT OpenFile(_In_ LPCWCH path);
 		HRESULT CloseFile();
 		// Use CoTaskMemFree when you are done with the pointer
@@ -96,7 +100,7 @@ namespace AudioPlay
 		// Always returns S_OK
 		HRESULT Loop(_In_ BOOL loop) { looping = loop; return S_OK; }
 		// Always returns S_OK
-		HRESULT GetLoop(_Out_ BOOL* loop) { if (loop != nullptr) { (*loop) = looping; } return S_OK; }
+		HRESULT GetLoop(_Out_ BOOL& loop) const { loop = looping; return S_OK; }
 
 
 		HRESULT Start();
@@ -111,10 +115,10 @@ namespace AudioPlay
 		HRESULT GetPosition(_Out_ milliseconds& position);
 		HRESULT GetDuration(_Out_ milliseconds& duration);
 		
-		HRESULT GetVolume(_Out_ float* volume);
+		HRESULT GetVolume(_Out_ float& volume) const;
 		HRESULT SetVolume(_In_ const float volume);
 
-		HRESULT GetMute(_Out_ BOOL* mute);
+		HRESULT GetMute(_Out_ BOOL& mute) const;
 		HRESULT SetMute(_In_ const BOOL mute);
 	};
 }

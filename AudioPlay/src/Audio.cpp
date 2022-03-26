@@ -60,7 +60,7 @@ HRESULT AudioPlay::Audio::CreateAudio(_In_ LPCWCH path, _COM_Outptr_ Audio** pPt
 }
 #pragma warning (pop)
 
-const AudioPlay::AudioMetadata AudioPlay::Audio::GetMetadata()
+const AudioPlay::AudioMetadata AudioPlay::Audio::GetMetadata() const
 {
 	return AudioPlay::AudioMetadata(mediaSource);
 }
@@ -392,18 +392,18 @@ HRESULT AudioPlay::Audio::GetDuration(_Out_ milliseconds& duration)
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::GetVolume(_Out_ float* volume)
+HRESULT AudioPlay::Audio::GetVolume(_Out_ float& volume) const
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
 	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
-		(*volume) = -1.0f;
+		volume = -1.0f;
 		return E_FAIL;
 	}
 
-	hr = simpleAudioVolume->GetMasterVolume(volume); HR_FAIL_ACTION(hr, (*volume) = -1.0f);
+	hr = simpleAudioVolume->GetMasterVolume(&volume); HR_FAIL_ACTION(hr, volume = -1.0f);
 
 	return hr;
 }
@@ -421,18 +421,18 @@ HRESULT AudioPlay::Audio::SetVolume(_In_ const float volume)
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::GetMute(_Out_ BOOL* mute)
+HRESULT AudioPlay::Audio::GetMute(_Out_ BOOL& mute) const
 {
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
 	if (state == AudioStates::Opening || state == AudioStates::Closed || state == AudioStates::Closing)
 	{
-		(*mute) = FALSE;
+		mute = FALSE;
 		return E_FAIL;
 	}
 
-	hr = simpleAudioVolume->GetMute(mute);
+	hr = simpleAudioVolume->GetMute(&mute);
 
 	return hr;
 }

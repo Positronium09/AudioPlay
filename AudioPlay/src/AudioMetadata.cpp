@@ -34,7 +34,7 @@ size_t GetHeaderOffset(const BYTE * data)
 }
 
 
-AudioPlay::AudioMetadata::AudioMetadata(ComPtr<IMFMediaSource>& mediaSource)
+AudioPlay::AudioMetadata::AudioMetadata(IMFMediaSource* mediaSource)
 {
 	HRESULT hr = MFGetService(mediaSource, MF_PROPERTY_HANDLER_SERVICE, IID_PPV_ARGS(&propertyStore));
 	if (FAILED(hr))

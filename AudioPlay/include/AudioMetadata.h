@@ -14,7 +14,7 @@ namespace AudioPlay
 		ComPtr<IPropertyStore> propertyStore;
 
 		protected:
-		AudioMetadata(ComPtr<IMFMediaSource>& mediaSource);
+		AudioMetadata(IMFMediaSource* mediaSource);
 
 		public:
 		virtual ~AudioMetadata();

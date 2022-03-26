@@ -46,9 +46,9 @@ void PrintDuration(std::reference_wrapper<ComPtr<AudioPlay::Audio>> mp3)
 		minute %= 60;
 
 		float volume = -1.0f;
-		mp3.get()->GetVolume(&volume);
+		mp3.get()->GetVolume(volume);
 		BOOL mute = FALSE;
-		mp3.get()->GetMute(&mute);
+		mp3.get()->GetMute(mute);
 
 		std::wcout <<
 			hour.count() << " Hours : " <<
@@ -169,7 +169,7 @@ int main()
 			if (GetAsyncKeyState('M') & 1 && GetForegroundWindow() == console)
 			{
 				BOOL mute;
-				mp3->GetMute(&mute);
+				mp3->GetMute(mute);
 				mp3->SetMute((BOOL)!mute); // Abomination to make "Using logical or when bitwise '~' was probably intended" go away
 			}
 			if (GetAsyncKeyState(VK_UP) & 1 && GetForegroundWindow() == console)
