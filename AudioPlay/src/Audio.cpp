@@ -183,7 +183,7 @@ HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 	hr = mediaSession->SetTopology(NULL, topology); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 
-	SIZE_T length;
+	size_t length;
 
 	hr = StringCbLengthW(path, STRSAFE_MAX_CCH * sizeof(WCHAR), &length); HR_FAIL(hr);
 	length += sizeof(WCHAR);
@@ -247,7 +247,7 @@ HRESULT AudioPlay::Audio::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
 	}
 	HRESULT hr = S_OK;
 	
-	SIZE_T length;
+	size_t length;
 
 	hr = StringCbLengthW(filepath, STRSAFE_MAX_CCH * sizeof(WCHAR), &length); HR_FAIL(hr);
 	length += sizeof(WCHAR);

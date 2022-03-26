@@ -53,7 +53,7 @@ HRESULT AudioPlay::AudioMetadata::GetTitle(_Outref_result_maybenull_ LPWCH& titl
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
 
-	SIZE_T length = 0;
+	size_t length = 0;
 	LPWCH titleVal = nullptr;
 
 	PROPVARIANT var;
@@ -83,7 +83,7 @@ HRESULT AudioPlay::AudioMetadata::GetAlbumName(_Outref_result_maybenull_ LPWCH& 
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
 
-	SIZE_T length = 0;
+	size_t length = 0;
 	LPWCH albumNameVal = nullptr;
 
 	PROPVARIANT var;
@@ -113,7 +113,7 @@ HRESULT AudioPlay::AudioMetadata::GetArtist(_Outref_result_maybenull_ LPWCH& art
 	CHECK_PROPERITYSTORE;
 	HRESULT hr = S_OK;
 
-	SIZE_T length = 0;
+	size_t length = 0;
 	LPWCH artistVal = nullptr;
 
 	PROPVARIANT var;
