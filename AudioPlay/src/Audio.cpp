@@ -11,7 +11,7 @@
 #define HR_FAIL_ACTION(hresult, action) if (FAILED(hresult)) { action; return hresult; }
 #define HR_FAIL(hresult) if (FAILED(hresult)) { return hresult; }
 
-#define CHECK_CLOSED if (state == AudioStates::Closed) { return MP3_E_CLOSED; }
+#define CHECK_CLOSED if (state == AudioStates::Closed) { return AUDIO_E_CLOSED; }
 
 
 using std::chrono::nanoseconds;

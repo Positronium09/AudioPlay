@@ -4,7 +4,7 @@
 
 #include <chrono>
 
-#define MP3_E_CLOSED _HRESULT_TYPEDEF_(0x80080000L)
+#define AUDIO_E_CLOSED _HRESULT_TYPEDEF_(0x80080000L)
 
 
 namespace AudioPlay
