@@ -163,15 +163,15 @@ HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 
 	HRESULT hr = S_OK;
 
-	mediaSession = nullptr;
-	mediaSource = nullptr;
-	simpleAudioVolume = nullptr;
-	presentationClock = nullptr;
-
 	if (state != AudioStates::Closed)
 	{
 		hr = CloseFile(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 	}
+
+	mediaSession = nullptr;
+	mediaSource = nullptr;
+	simpleAudioVolume = nullptr;
+	presentationClock = nullptr;
 
 	hr = MFCreateTopology(&topology); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
