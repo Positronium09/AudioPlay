@@ -32,6 +32,10 @@ namespace AudioPlay
 	{
 		return (AudioStates)((int)lhs & (int)rhs);
 	}
+	constexpr AudioStates operator|(const AudioStates& lhs, const AudioStates& rhs)
+	{
+		return (AudioStates)((int)lhs | (int)rhs);
+	}
 
 
 	class Audio : public IMFAsyncCallback
