@@ -266,6 +266,41 @@ HRESULT AudioPlay::Audio::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
 	return hr;
 }
 
+HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState)
+{
+	while (true)
+	{
+		if ((bool)(GetState() & waitState))
+		{
+			return S_OK;
+		}
+		else if (GetState() == AudioStates::Closed)
+		{
+			return E_FAIL;
+		}
+	}
+}
+
+HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState, _In_ const milliseconds timeout)
+{
+	using clock = std::chrono::high_resolution_clock;
+
+	auto now = clock::now();
+
+	while ((clock::now() - now) > timeout)
+	{
+		if ((bool)(GetState() & waitState))
+		{
+			return S_OK;
+		}
+		else if (GetState() == AudioStates::Closed)
+		{
+			return E_FAIL;
+		}
+	}
+	return E_FAIL;
+}
+
 HRESULT AudioPlay::Audio::Start()
 {
 	CHECK_CLOSED;

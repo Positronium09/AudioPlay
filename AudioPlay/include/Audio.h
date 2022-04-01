@@ -12,17 +12,27 @@ namespace AudioPlay
 	class AudioMetadata;
 	enum class AudioStates
 	{
-		Ready,
-		Starting,
-		Started,
-		Pausing,
-		Paused,
-		Stopping,
-		Stopped,
-		Opening,
-		Closing,
-		Closed
+		Ready = 0x001,
+		Starting = 0x002,
+		Started = 0x004,
+		Pausing = 0x008,
+		Paused = 0x010,
+		Stopping = 0x020,
+		Stopped = 0x040,
+		Opening = 0x080,
+		Closing = 0x100,
+		Closed = 0x200,
+		Start = Started | Starting,
+		Pause = Paused | Pausing,
+		Stop = Stopped | Stopping,
+		Close = Closed | Closing
 	};
+
+	constexpr AudioStates operator&(const AudioStates& lhs, const AudioStates& rhs)
+	{
+		return (AudioStates)((int)lhs & (int)rhs);
+	}
+
 
 	class Audio : public IMFAsyncCallback
 	{
@@ -32,9 +42,9 @@ namespace AudioPlay
 		ULONG referenceCount;
 
 		volatile AudioStates state;
-		
+
 		LPWCH filepath;
-		
+
 		volatile BOOL clockPresent;
 		volatile BOOL volumeControlPresent;
 		BOOL looping;
@@ -67,7 +77,7 @@ namespace AudioPlay
 
 		static HRESULT CreateAudio(_In_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3);
 
-#pragma region IMPLEMENT_IUnknown
+		#pragma region IMPLEMENT_IUnknown
 
 		template<class T>
 		STDMETHODIMP QueryInterface(_COM_Outptr_ T** pPtr) { return QueryInterface(__uuidof(T), (void**)pPtr); }
@@ -76,18 +86,18 @@ namespace AudioPlay
 		STDMETHODIMP_(ULONG) AddRef();
 		STDMETHODIMP_(ULONG) Release();
 
-#pragma endregion
+		#pragma endregion
 
-#pragma region IMPLEMENT IMFAsyncCallback
+		#pragma region IMPLEMENT IMFAsyncCallback
 
 		STDMETHODIMP GetParameters(DWORD* pdwFlags, DWORD* pdwQueue)
 		{
-			UNREFERENCED_PARAMETER(pdwFlags); UNREFERENCED_PARAMETER(pdwQueue); 
-			return E_NOTIMPL; 
+			UNREFERENCED_PARAMETER(pdwFlags); UNREFERENCED_PARAMETER(pdwQueue);
+			return E_NOTIMPL;
 		}
 		STDMETHODIMP Invoke(IMFAsyncResult* asyncResult);
 
-#pragma endregion
+		#pragma endregion
 
 		const AudioMetadata GetMetadata() const;
 
@@ -102,19 +112,21 @@ namespace AudioPlay
 		// Always returns S_OK
 		HRESULT GetLoop(_Out_ BOOL& loop) const { loop = looping; return S_OK; }
 
+		HRESULT WaitForState(AudioStates state);
+		HRESULT WaitForState(AudioStates state, _In_ const milliseconds timeout);
 
 		HRESULT Start();
 		HRESULT Start(_In_ const milliseconds position);
-		
+
 		HRESULT Pause();
-		
+
 		HRESULT Stop();
-		
+
 		HRESULT Seek(_In_ const milliseconds position);
-		
+
 		HRESULT GetPosition(_Out_ milliseconds& position);
 		HRESULT GetDuration(_Out_ milliseconds& duration);
-		
+
 		HRESULT GetVolume(_Out_ float& volume) const;
 		HRESULT SetVolume(_In_ const float volume);
 
