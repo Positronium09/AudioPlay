@@ -380,12 +380,13 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	GetMute(mute);
 	SetMute(1);
 
+	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
+
 	hr = mediaSession->Start(&GUID_NULL, &var);
 
 	PropVariantClear(&var);
 
-	if (state == AudioStates::Paused || state == AudioStates::Pausing ||
-		state == AudioStates::Stopped || state == AudioStates::Stopping)
+	if (shouldPause)
 	{
 		hr = mediaSession->Pause();
 	}
