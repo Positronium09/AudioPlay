@@ -179,11 +179,11 @@ HRESULT AudioPlay::AudioMetadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecod
 		return E_INVALIDARG;
 	}
 
-	ComPtr<IWICImagingFactory> factory;
-	ComPtr<IWICStream> stream;
-	ComPtr<IWICBitmapDecoder> decoder;
+	ComPtr<IWICImagingFactory> factory = nullptr;
+	ComPtr<IWICStream> stream = nullptr;
+	ComPtr<IWICBitmapDecoder> decoder = nullptr;
 
-	IStream* thumbnailStream;
+	ComPtr<IStream> thumbnailStream = nullptr;
 
 	HRESULT hr = S_OK;
 
@@ -209,7 +209,7 @@ HRESULT AudioPlay::AudioMetadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecod
 		return S_FALSE;
 	}
 
-	thumbnailStream = thumbnail.pStream;
+	thumbnail.pStream->Clone(&thumbnailStream);
 
 	PropVariantClear(&thumbnail);
 
