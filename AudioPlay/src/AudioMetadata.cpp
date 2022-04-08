@@ -171,7 +171,7 @@ HRESULT AudioPlay::AudioMetadata::GetProperityCount(_Out_ DWORD& count) const
 }
 
 #pragma warning (push)
-#pragma warning (disable: 6388 28196)
+#pragma warning (disable: 6388 6387 28196)
 HRESULT AudioPlay::AudioMetadata::GetThumbnail(_COM_Outptr_ IWICBitmapFrameDecode** pPtrthumbnail)
 {
 	if (pPtrthumbnail == nullptr)
