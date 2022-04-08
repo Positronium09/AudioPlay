@@ -375,6 +375,11 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	var.vt = VT_I8;
 	var.hVal.QuadPart = duration_cast<nanoseconds>(position).count() / 100;
 
+	// Prevent any noise from coming out between start and pause calls
+	BOOL mute = 0;
+	GetMute(mute);
+	SetMute(1);
+
 	hr = mediaSession->Start(&GUID_NULL, &var);
 
 	PropVariantClear(&var);
@@ -384,6 +389,8 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	{
 		hr = mediaSession->Pause();
 	}
+
+	SetMute(mute);
 
 	return hr;
 }
