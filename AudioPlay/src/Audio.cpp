@@ -376,13 +376,14 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	var.hVal.QuadPart = duration_cast<nanoseconds>(position).count() / 100;
 
 	// Prevent any noise from coming out between start and pause calls
+	// Idk if it works
 	BOOL mute = 0;
 	GetMute(mute);
 	SetMute(1);
 
-	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
-
 	hr = mediaSession->Start(&GUID_NULL, &var);
+
+	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
 
 	PropVariantClear(&var);
 
