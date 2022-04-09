@@ -24,7 +24,7 @@ class AutoCriticalSection
 	LPCRITICAL_SECTION criticalSection;
 
 	public:
-	AutoCriticalSection(LPCRITICAL_SECTION section) : 
+	AutoCriticalSection(LPCRITICAL_SECTION section) :
 		criticalSection(section)
 	{
 
@@ -120,20 +120,20 @@ HRESULT AudioPlay::Audio::CreateTopology(_In_ ComPtr<IMFTopology>& topology, _In
 
 	hr = mediaSink->GetStreamSinkByIndex(streamIndex, &streamSink); HR_FAIL(hr);
 
-#pragma region SOURCESTREAM NODE
+	#pragma region SOURCESTREAM NODE
 	MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE, &sourceNode); HR_FAIL(hr);
 	hr = sourceNode->SetUnknown(MF_TOPONODE_SOURCE, mediaSource); HR_FAIL(hr);
 	hr = sourceNode->SetUnknown(MF_TOPONODE_PRESENTATION_DESCRIPTOR, presentationDescriptor); HR_FAIL(hr);
 	hr = sourceNode->SetUnknown(MF_TOPONODE_STREAM_DESCRIPTOR, streamDescriptor); HR_FAIL(hr);
-#pragma endregion
+	#pragma endregion
 	hr = topology->AddNode(sourceNode); HR_FAIL(hr);
 
-#pragma region OUTPUT_NODE
+	#pragma region OUTPUT_NODE
 	hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &outputNode); HR_FAIL(hr);
 	hr = outputNode->SetObject(streamSink); HR_FAIL(hr);
 	hr = outputNode->SetUINT32(MF_TOPONODE_STREAMID, 0); HR_FAIL(hr);
 	hr = outputNode->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE); HR_FAIL(hr);
-#pragma endregion
+	#pragma endregion
 	hr = topology->AddNode(outputNode); HR_FAIL(hr);
 
 	hr = sourceNode->ConnectOutput(0, outputNode, 0); HR_FAIL(hr);
@@ -150,7 +150,7 @@ HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 	hr = MFCreateSourceResolver(&sourceResolver); HR_FAIL(hr);
 
 	MF_OBJECT_TYPE objectType = MF_OBJECT_INVALID;
-	hr = sourceResolver->CreateObjectFromURL(path, MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE, 
+	hr = sourceResolver->CreateObjectFromURL(path, MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
 		NULL, &objectType, reinterpret_cast<IUnknown**>(&mediaSource)); HR_FAIL(hr);
 
 	return hr;
@@ -198,7 +198,6 @@ HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 	{
 		hr = StringCbCopyW(filepath, length, path);
 	}
-
 
 	state = AudioStates::Opening;
 
@@ -250,7 +249,7 @@ HRESULT AudioPlay::Audio::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
 		return E_POINTER;
 	}
 	HRESULT hr = S_OK;
-	
+
 	size_t length;
 
 	hr = StringCbLengthW(filepath, STRSAFE_MAX_CCH * sizeof(WCHAR), &length); HR_FAIL(hr);
@@ -311,11 +310,11 @@ HRESULT AudioPlay::Audio::Start()
 
 	var.vt = VT_EMPTY;
 
+	state = AudioStates::Starting;
+
 	hr = mediaSession->Start(&GUID_NULL, &var);
 
 	PropVariantClear(&var);
-
-	state = AudioStates::Starting;
 
 	return hr;
 }
@@ -330,11 +329,11 @@ HRESULT AudioPlay::Audio::Start(_In_ const milliseconds position)
 	var.vt = VT_I8;
 	var.hVal.QuadPart = duration_cast<nanoseconds>(position).count() / 100;
 
-	hr = mediaSession->Start(&GUID_NULL, &var);
+	state = AudioStates::Starting;
+
+	hr = mediaSession->Start(&GUID_NULL, &var); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	PropVariantClear(&var);
-
-	state = AudioStates::Starting;
 
 	return hr;
 }
@@ -344,9 +343,9 @@ HRESULT AudioPlay::Audio::Pause()
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	hr = mediaSession->Pause();
-
 	state = AudioStates::Pausing;
+
+	hr = mediaSession->Pause(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	return hr;
 
@@ -357,9 +356,9 @@ HRESULT AudioPlay::Audio::Stop()
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	hr = mediaSession->Stop();
-
 	state = AudioStates::Stopping;
+
+	hr = mediaSession->Stop(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	return hr;
 }
@@ -369,27 +368,18 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	PROPVARIANT var;
-	PropVariantInit(&var);
-
-	var.vt = VT_I8;
-	var.hVal.QuadPart = duration_cast<nanoseconds>(position).count() / 100;
-
 	// Prevent any noise from coming out between start and pause calls
-	// Idk if it works
 	BOOL mute = 0;
 	GetMute(mute);
 	SetMute(1);
 
-	hr = mediaSession->Start(&GUID_NULL, &var);
+	hr = Start(position);
 
 	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
 
-	PropVariantClear(&var);
-
 	if (shouldPause)
 	{
-		hr = mediaSession->Pause();
+		hr = Pause();
 	}
 
 	SetMute(mute);
@@ -626,7 +616,7 @@ HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& med
 	{
 		state = AudioStates::Ready;
 	}
-	
+
 	return hr;
 }
 
@@ -638,7 +628,7 @@ HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEve
 
 	simpleAudioVolume = nullptr;
 	hr = MFGetService(mediaSession, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&simpleAudioVolume)); HR_FAIL(hr);
-	
+
 	if (!volumeControlPresent && clockPresent)
 	{
 		state = AudioStates::Ready;
@@ -718,7 +708,6 @@ HRESULT AudioPlay::Audio::OnMENewPresentation(_In_ ComPtr<IMFMediaEvent>& mediaE
 	ComPtr<IMFPresentationDescriptor> presentationDescriptor;
 
 	HRESULT hr = S_OK;
-
 
 	PROPVARIANT var;
 	PropVariantInit(&var);
