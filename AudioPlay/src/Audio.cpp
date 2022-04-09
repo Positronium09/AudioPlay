@@ -368,21 +368,14 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	// Prevent any noise from coming out between start and pause calls
-	BOOL mute = 0;
-	GetMute(mute);
-	SetMute(1);
+	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
 
 	hr = Start(position);
-
-	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
 
 	if (shouldPause)
 	{
 		hr = Pause();
 	}
-
-	SetMute(mute);
 
 	return hr;
 }
