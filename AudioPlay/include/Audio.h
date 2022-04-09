@@ -5,6 +5,7 @@
 #include <chrono>
 
 #define AUDIO_E_CLOSED _HRESULT_TYPEDEF_(0x80080000L)
+#define AUDIO_TIMEOUT _HRESULT_TYPEDEF_(0x00090000L)
 
 
 namespace AudioPlay

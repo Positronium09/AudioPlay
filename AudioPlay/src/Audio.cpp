@@ -273,7 +273,7 @@ HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState)
 		{
 			return S_OK;
 		}
-		else if (GetState() == AudioStates::Closed)
+		else if ((bool)(GetState() & AudioStates::Close))
 		{
 			return E_FAIL;
 		}
@@ -292,12 +292,12 @@ HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState, _In_ co
 		{
 			return S_OK;
 		}
-		else if (GetState() == AudioStates::Closed)
+		else if ((bool)(GetState() & AudioStates::Close))
 		{
 			return E_FAIL;
 		}
 	}
-	return E_FAIL;
+	return AUDIO_TIMEOUT;
 }
 
 HRESULT AudioPlay::Audio::Start()
