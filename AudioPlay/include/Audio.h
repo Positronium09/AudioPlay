@@ -113,7 +113,7 @@ namespace AudioPlay
 		HRESULT GetFilePath(_Outref_result_maybenull_ LPWCH& path);
 
 		// Always returns S_OK
-		HRESULT Loop(_In_ BOOL loop) { looping = loop; return S_OK; }
+		HRESULT SetLoop(_In_ BOOL loop) { looping = loop; return S_OK; }
 		// Always returns S_OK
 		HRESULT GetLoop(_Out_ BOOL& loop) const { loop = looping; return S_OK; }
 
