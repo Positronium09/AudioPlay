@@ -156,9 +156,9 @@ HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 	return hr;
 }
 
-bool AudioPlay::Audio::CheckState(AudioStates state) const
+bool AudioPlay::Audio::CheckState(AudioStates p_state) const
 {
-	return (bool)(GetState() & state);
+	return (bool)(GetState() & p_state);
 }
 
 HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
