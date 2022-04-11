@@ -156,6 +156,11 @@ HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 	return hr;
 }
 
+bool AudioPlay::Audio::CheckState(AudioStates state) const
+{
+	return (bool)(GetState() & state);
+}
+
 HRESULT AudioPlay::Audio::OpenFile(_In_ LPCWCH path)
 {
 	ComPtr<IMFTopology> topology;

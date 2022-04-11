@@ -107,6 +107,7 @@ namespace AudioPlay
 		const AudioMetadata GetMetadata() const;
 
 		AudioStates GetState() const { return state; }
+		bool CheckState(AudioStates state) const;
 		HRESULT OpenFile(_In_ LPCWCH path);
 		HRESULT CloseFile();
 		// Use CoTaskMemFree when you are done with the pointer
