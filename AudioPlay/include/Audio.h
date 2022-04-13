@@ -80,7 +80,7 @@ namespace AudioPlay
 		public:
 		virtual ~Audio();
 
-		static HRESULT CreateAudio(_In_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3);
+		static HRESULT CreateAudio(_In_opt_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3);
 
 		#pragma region IMPLEMENT_IUnknown
 
