@@ -41,7 +41,7 @@ using namespace std::chrono_literals;
 
 #pragma warning (push)
 #pragma warning (disable: 6388 28196)
-HRESULT AudioPlay::Audio::CreateAudio(_In_opt_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3)
+HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3)
 {
 	HRESULT hr = S_OK;
 
