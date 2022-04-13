@@ -52,7 +52,10 @@ HRESULT AudioPlay::Audio::CreateAudio(_In_ LPCWCH path, _COM_Outptr_ Audio** pPt
 
 	Audio* mp3 = new Audio();
 
-	hr = mp3->OpenFile(path);
+	if (path)
+	{
+		hr = mp3->OpenFile(path);
+	}
 
 	(*pPtrMp3) = mp3;
 
