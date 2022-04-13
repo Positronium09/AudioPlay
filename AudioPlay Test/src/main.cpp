@@ -145,7 +145,7 @@ int main()
 
 		mp3->Start(0s);
 		mp3->Pause();
-		mp3->Loop(TRUE);
+		mp3->SetLoop(TRUE);
 
 		int volume = 50;
 		mp3->SetVolume(volume / 100.0f);
