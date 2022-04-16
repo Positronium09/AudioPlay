@@ -41,6 +41,28 @@ using namespace std::chrono_literals;
 
 #pragma warning (push)
 #pragma warning (disable: 6388 28196)
+
+HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _In_ MediaEventCallback callback, _COM_Outptr_ Audio** pPtrMp3)
+{
+	HRESULT hr = S_OK;
+
+	if (pPtrMp3 == nullptr)
+	{
+		return E_INVALIDARG;
+	}
+
+	Audio* mp3 = new Audio(callback);
+
+	if (path)
+	{
+		hr = mp3->OpenFile(path);
+	}
+
+	(*pPtrMp3) = mp3;
+
+	return hr;
+}
+
 HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3)
 {
 	HRESULT hr = S_OK;
@@ -69,7 +91,20 @@ const AudioPlay::AudioMetadata AudioPlay::Audio::GetMetadata() const
 }
 
 AudioPlay::Audio::Audio() :
-	referenceCount(1), state(AudioStates::Closed), filepath(nullptr), clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE)
+	referenceCount(1), state(AudioStates::Closed), filepath(nullptr),
+	clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE),
+	callback(nullptr)
+{
+	InitializeCriticalSection(&criticalSection);
+
+	closeEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+}
+
+
+AudioPlay::Audio::Audio(MediaEventCallback p_callback) :
+	referenceCount(1), state(AudioStates::Closed), filepath(nullptr), 
+	clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE), 
+	callback(p_callback)
 {
 	InitializeCriticalSection(&criticalSection);
 
@@ -159,7 +194,7 @@ HRESULT AudioPlay::Audio::CreateMediaSource(_In_ LPCWCH path)
 	return hr;
 }
 
-bool AudioPlay::Audio::CheckState(AudioStates p_state) const
+bool AudioPlay::Audio::CheckState(_In_ AudioStates p_state) const
 {
 	return (bool)(GetState() & p_state);
 }
@@ -273,7 +308,7 @@ HRESULT AudioPlay::Audio::GetFilePath(_Outref_result_maybenull_ LPWCH& path)
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState)
+HRESULT AudioPlay::Audio::WaitForState(_In_ AudioPlay::AudioStates waitState)
 {
 	while (true)
 	{
@@ -288,7 +323,7 @@ HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState)
 	}
 }
 
-HRESULT AudioPlay::Audio::WaitForState(AudioPlay::AudioStates waitState, _In_ const milliseconds timeout)
+HRESULT AudioPlay::Audio::WaitForState(_In_ AudioPlay::AudioStates waitState, _In_ const milliseconds timeout)
 {
 	using clock = std::chrono::high_resolution_clock;
 
@@ -591,6 +626,11 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 				break;
 			}
 		}
+	}
+
+	if (callback)
+	{
+		callback(mediaEvent);
 	}
 
 	if (mediaEventType != MESessionClosed)

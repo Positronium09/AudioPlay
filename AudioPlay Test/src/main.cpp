@@ -75,6 +75,13 @@ BOOL WINAPI CtrlHandle(_In_ DWORD dwCtrlType)
 	return FALSE;
 }
 
+void Callback(IMFMediaEvent* p_event)
+{
+	ComPtr<IMFMediaEvent> event = p_event;
+
+	MessageBeep(MB_OK);
+}
+
 int main()
 {
 	AudioPlay::StartMediaFoundation();
@@ -107,7 +114,7 @@ int main()
 
 		ComPtr<AudioPlay::Audio> mp3;
 
-		AudioPlay::Audio::CreateAudio(file, &mp3);
+		AudioPlay::Audio::CreateAudio(file, Callback, &mp3);
 
 		while (mp3->GetState() != AudioPlay::AudioStates::Ready);
 

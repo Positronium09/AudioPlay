@@ -10,6 +10,8 @@
 
 namespace AudioPlay
 {
+	using MediaEventCallback = void (*)(IMFMediaEvent*);
+
 	class AudioMetadata;
 	enum class AudioStates
 	{
@@ -62,6 +64,8 @@ namespace AudioPlay
 		ComPtr<IMFSimpleAudioVolume> simpleAudioVolume;
 		ComPtr<IMFPresentationClock> presentationClock;
 
+		MediaEventCallback callback;
+
 		private:
 		HRESULT CreateMediaSource(_In_ LPCWCH path);
 		HRESULT CreateTopology(_In_ ComPtr<IMFTopology>& topology, _In_ ComPtr<IMFPresentationDescriptor>& presentationDescriptor);
@@ -76,11 +80,13 @@ namespace AudioPlay
 		virtual HRESULT OnMESessionClosed(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMENewPresentation(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		Audio();
+		Audio(MediaEventCallback callback);
 
 		public:
 		virtual ~Audio();
 
 		static HRESULT CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3);
+		static HRESULT CreateAudio(_In_opt_z_ LPCWCH path, _In_ MediaEventCallback callback, _COM_Outptr_ Audio** pPtrMp3);
 
 		#pragma region IMPLEMENT_IUnknown
 
@@ -93,7 +99,7 @@ namespace AudioPlay
 
 		#pragma endregion
 
-		#pragma region IMPLEMENT IMFAsyncCallback
+		#pragma region IMPLEMENT_IMFAsyncCallback
 
 		STDMETHODIMP GetParameters(DWORD* pdwFlags, DWORD* pdwQueue)
 		{
@@ -107,7 +113,7 @@ namespace AudioPlay
 		const AudioMetadata GetMetadata() const;
 
 		AudioStates GetState() const { return state; }
-		bool CheckState(AudioStates state) const;
+		bool CheckState(_In_ AudioStates state) const;
 		HRESULT OpenFile(_In_ LPCWCH path);
 		HRESULT CloseFile();
 		// Use CoTaskMemFree when you are done with the pointer
@@ -118,8 +124,8 @@ namespace AudioPlay
 		// Always returns S_OK
 		HRESULT GetLoop(_Out_ BOOL& loop) const { loop = looping; return S_OK; }
 
-		HRESULT WaitForState(AudioStates state);
-		HRESULT WaitForState(AudioStates state, _In_ const milliseconds timeout);
+		HRESULT WaitForState(_In_ AudioStates state);
+		HRESULT WaitForState(_In_ AudioStates state, _In_ const milliseconds timeout);
 
 		HRESULT Start();
 		HRESULT Start(_In_ const milliseconds position);
