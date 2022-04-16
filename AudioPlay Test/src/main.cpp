@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <functional>
 #include <chrono>
 #include <thread>
 #include <iomanip>
@@ -114,7 +115,12 @@ int main()
 
 		ComPtr<AudioPlay::Audio> mp3;
 
-		AudioPlay::Audio::CreateAudio(file, Callback, &mp3);
+		AudioPlay::Audio::CreateAudio(file, [](IMFMediaEvent* p_event)
+		{
+			ComPtr<IMFMediaEvent> event = p_event;
+
+			OutputDebugString(TEXT("\nEvent fired\n"));
+		}, &mp3);
 
 		while (mp3->GetState() != AudioPlay::AudioStates::Ready);
 

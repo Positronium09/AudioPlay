@@ -92,8 +92,7 @@ const AudioPlay::AudioMetadata AudioPlay::Audio::GetMetadata() const
 
 AudioPlay::Audio::Audio() :
 	referenceCount(1), state(AudioStates::Closed), filepath(nullptr),
-	clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE),
-	callback(nullptr)
+	looping(FALSE),	callback(nullptr)
 {
 	InitializeCriticalSection(&criticalSection);
 
@@ -103,8 +102,7 @@ AudioPlay::Audio::Audio() :
 
 AudioPlay::Audio::Audio(MediaEventCallback p_callback) :
 	referenceCount(1), state(AudioStates::Closed), filepath(nullptr), 
-	clockPresent(FALSE), volumeControlPresent(FALSE), looping(FALSE), 
-	callback(p_callback)
+	looping(FALSE), callback(p_callback)
 {
 	InitializeCriticalSection(&criticalSection);
 
@@ -270,9 +268,6 @@ HRESULT AudioPlay::Audio::CloseFile()
 	presentationClock = nullptr;
 	simpleAudioVolume = nullptr;
 
-	clockPresent = FALSE;
-	volumeControlPresent = FALSE;
-
 	if (filepath)
 	{
 		CoTaskMemFree(filepath);
@@ -351,11 +346,18 @@ HRESULT AudioPlay::Audio::Start()
 	PROPVARIANT var;
 	PropVariantInit(&var);
 
-	var.vt = VT_EMPTY;
+	if (!CheckState(AudioStates::Start))
+	{
+		hr = Start(currentPosition);
+	}
+	else
+	{
+		var.vt = VT_EMPTY;
 
-	state = AudioStates::Starting;
+		state = AudioStates::Starting;
 
-	hr = mediaSession->Start(&GUID_NULL, &var);
+		hr = mediaSession->Start(&GUID_NULL, &var);
+	}
 
 	PropVariantClear(&var);
 
@@ -390,6 +392,8 @@ HRESULT AudioPlay::Audio::Pause()
 
 	hr = mediaSession->Pause(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
+	GetPosition(currentPosition);
+
 	return hr;
 
 }
@@ -403,6 +407,8 @@ HRESULT AudioPlay::Audio::Stop()
 
 	hr = mediaSession->Stop(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
+	currentPosition = 0ms;
+
 	return hr;
 }
 
@@ -413,11 +419,11 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 
 	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
 
-	hr = Start(position);
+	currentPosition = position;
 
-	if (shouldPause)
+	if (!shouldPause)
 	{
-		hr = Pause();
+		hr = Start(currentPosition);
 	}
 
 	return hr;
@@ -589,12 +595,6 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 				OnMESessionCapabilitiesChanged(mediaEvent);
 				break;
 			}
-
-			case MESessionTopologySet:
-			{
-				hr = OnMESessionTopologySet(mediaEvent);
-				break;
-			}
 			case MESessionStarted:
 			{
 				hr = OnMESessionStarted(mediaEvent);
@@ -643,24 +643,6 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 
 #pragma region EVENT_HANDLERS
 
-HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
-{
-	UNREFERENCED_PARAMETER(mediaEvent);
-
-	HRESULT hr = S_OK;
-
-	presentationClock = nullptr;
-	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(&presentationClock)); HR_FAIL(hr);
-	clockPresent = true;
-
-	if (volumeControlPresent)
-	{
-		state = AudioStates::Ready;
-	}
-
-	return hr;
-}
-
 HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
@@ -670,11 +652,10 @@ HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEve
 	simpleAudioVolume = nullptr;
 	hr = MFGetService(mediaSession, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&simpleAudioVolume)); HR_FAIL(hr);
 
-	if (!volumeControlPresent && clockPresent)
-	{
-		state = AudioStates::Ready;
-	}
-	volumeControlPresent = true;
+	presentationClock = nullptr;
+	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(&presentationClock)); HR_FAIL(hr);
+
+	state = AudioStates::Ready;
 
 	return hr;
 }

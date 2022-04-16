@@ -52,8 +52,6 @@ namespace AudioPlay
 
 		LPWCH filepath;
 
-		volatile BOOL clockPresent;
-		volatile BOOL volumeControlPresent;
 		BOOL looping;
 
 		CRITICAL_SECTION criticalSection;
@@ -66,13 +64,14 @@ namespace AudioPlay
 
 		MediaEventCallback callback;
 
+		milliseconds currentPosition{ 0 };
+
 		private:
 		HRESULT CreateMediaSource(_In_ LPCWCH path);
 		HRESULT CreateTopology(_In_ ComPtr<IMFTopology>& topology, _In_ ComPtr<IMFPresentationDescriptor>& presentationDescriptor);
 
 		protected:
 		virtual HRESULT OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
-		virtual HRESULT OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionStarted(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionPaused(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionStopped(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
