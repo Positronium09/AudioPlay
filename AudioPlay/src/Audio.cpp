@@ -390,9 +390,9 @@ HRESULT AudioPlay::Audio::Pause()
 
 	state = AudioStates::Pausing;
 
-	hr = mediaSession->Pause(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
-
 	GetPosition(currentPosition);
+
+	hr = mediaSession->Pause(); HR_FAIL_ACTION(hr, state = AudioStates::Closed);
 
 	return hr;
 
@@ -442,7 +442,7 @@ HRESULT AudioPlay::Audio::GetPosition(_Out_ milliseconds& position)
 
 	ComPtr<IMFPresentationTimeSource> presentationTimeSource;
 	presentationClock->GetTimeSource(&presentationTimeSource);
-	if (!presentationTimeSource)
+	if (!presentationTimeSource || CheckState(AudioStates::Pause))
 	{
 		position = currentPosition;
 		return S_OK;
