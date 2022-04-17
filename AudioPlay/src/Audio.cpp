@@ -417,11 +417,9 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 	CHECK_CLOSED;
 	HRESULT hr = S_OK;
 
-	bool shouldPause = (bool)(GetState() & (AudioStates::Close | AudioStates::Stop | AudioStates::Pause));
-
 	currentPosition = position;
 
-	if (!shouldPause)
+	if (CheckState(AudioStates::Close | AudioStates::Stop | AudioStates::Pause))
 	{
 		hr = Start(currentPosition);
 	}
@@ -441,6 +439,15 @@ HRESULT AudioPlay::Audio::GetPosition(_Out_ milliseconds& position)
 		position = milliseconds{ -1 };
 		return E_FAIL;
 	}
+
+	ComPtr<IMFPresentationTimeSource> presentationTimeSource;
+	presentationClock->GetTimeSource(&presentationTimeSource);
+	if (!presentationTimeSource)
+	{
+		position = currentPosition;
+		return S_OK;
+	}
+
 	hr = presentationClock->GetTime(&mfTime); HR_FAIL_ACTION(hr, position = milliseconds{ -1 });
 	nanoseconds nanosec{ mfTime * 100 };
 
@@ -448,6 +455,7 @@ HRESULT AudioPlay::Audio::GetPosition(_Out_ milliseconds& position)
 
 	return hr;
 }
+
 HRESULT AudioPlay::Audio::GetDuration(_Out_ milliseconds& duration)
 {
 	CHECK_CLOSED;
