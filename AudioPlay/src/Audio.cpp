@@ -590,6 +590,12 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 	{
 		switch (mediaEventType)
 		{
+			case MESessionTopologySet:
+			{
+				OnMESessionTopologySet(mediaEvent);
+				break;
+			}
+
 			case MESessionCapabilitiesChanged:
 			{
 				OnMESessionCapabilitiesChanged(mediaEvent);
@@ -643,6 +649,23 @@ STDMETHODIMP AudioPlay::Audio::Invoke(IMFAsyncResult* asyncResult)
 
 #pragma region EVENT_HANDLERS
 
+HRESULT AudioPlay::Audio::OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
+{
+	UNREFERENCED_PARAMETER(mediaEvent);
+
+	HRESULT hr = S_OK;
+
+	presentationClock = nullptr;
+	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(&presentationClock)); HR_FAIL(hr);
+
+	if (simpleAudioVolume)
+	{
+		state = AudioStates::Ready;
+	}
+
+	return hr;
+}
+
 HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEvent>& mediaEvent)
 {
 	UNREFERENCED_PARAMETER(mediaEvent);
@@ -652,10 +675,10 @@ HRESULT AudioPlay::Audio::OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEve
 	simpleAudioVolume = nullptr;
 	hr = MFGetService(mediaSession, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&simpleAudioVolume)); HR_FAIL(hr);
 
-	presentationClock = nullptr;
-	hr = mediaSession->GetClock(reinterpret_cast<IMFClock**>(&presentationClock)); HR_FAIL(hr);
-
-	state = AudioStates::Ready;
+	if (presentationClock)
+	{
+		state = AudioStates::Ready;
+	}
 
 	return hr;
 }

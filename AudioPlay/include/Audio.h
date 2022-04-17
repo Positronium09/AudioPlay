@@ -71,6 +71,7 @@ namespace AudioPlay
 		HRESULT CreateTopology(_In_ ComPtr<IMFTopology>& topology, _In_ ComPtr<IMFPresentationDescriptor>& presentationDescriptor);
 
 		protected:
+		virtual HRESULT OnMESessionTopologySet(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionCapabilitiesChanged(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionStarted(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
 		virtual HRESULT OnMESessionPaused(_In_ ComPtr<IMFMediaEvent>& mediaEvent);
