@@ -419,7 +419,7 @@ HRESULT AudioPlay::Audio::Seek(_In_ const milliseconds position)
 
 	currentPosition = position;
 
-	if (CheckState(AudioStates::Close | AudioStates::Stop | AudioStates::Pause))
+	if (!CheckState(AudioStates::Close | AudioStates::Stop | AudioStates::Pause))
 	{
 		hr = Start(currentPosition);
 	}
