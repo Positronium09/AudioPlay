@@ -253,6 +253,8 @@ HRESULT AudioPlay::Audio::CloseFile()
 		return hr;
 	}
 
+	currentPosition = 0ms;
+
 	state = AudioStates::Closing;
 
 	hr = mediaSession->Close();
