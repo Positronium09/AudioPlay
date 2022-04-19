@@ -444,7 +444,7 @@ HRESULT AudioPlay::Audio::GetPosition(_Out_ milliseconds& position)
 
 	ComPtr<IMFPresentationTimeSource> presentationTimeSource;
 	presentationClock->GetTimeSource(&presentationTimeSource);
-	if (!presentationTimeSource || CheckState(AudioStates::Pause))
+	if ((!presentationTimeSource || CheckState(AudioStates::Pause)) && (&position != &currentPosition))
 	{
 		position = currentPosition;
 		return S_OK;
