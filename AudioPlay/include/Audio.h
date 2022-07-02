@@ -85,8 +85,8 @@ namespace AudioPlay
 		public:
 		virtual ~Audio();
 
-		static HRESULT CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3);
-		static HRESULT CreateAudio(_In_opt_z_ LPCWCH path, _In_ MediaEventCallback callback, _COM_Outptr_ Audio** pPtrMp3);
+		static HRESULT CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrAudio);
+		static HRESULT CreateAudio(_In_opt_z_ LPCWCH path, _In_ MediaEventCallback callback, _COM_Outptr_ Audio** pPtrAudio);
 
 		#pragma region IMPLEMENT_IUnknown
 

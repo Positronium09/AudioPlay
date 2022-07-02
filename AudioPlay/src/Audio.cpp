@@ -42,44 +42,44 @@ using namespace std::chrono_literals;
 #pragma warning (push)
 #pragma warning (disable: 6388 28196)
 
-HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _In_ MediaEventCallback callback, _COM_Outptr_ Audio** pPtrMp3)
+HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _In_ MediaEventCallback callback, _COM_Outptr_ Audio** pPtrAudio)
 {
 	HRESULT hr = S_OK;
 
-	if (pPtrMp3 == nullptr)
+	if (pPtrAudio == nullptr)
 	{
 		return E_INVALIDARG;
 	}
 
-	Audio* mp3 = new Audio(callback);
+	Audio* audio = new Audio(callback);
 
 	if (path)
 	{
-		hr = mp3->OpenFile(path);
+		hr = audio->OpenFile(path);
 	}
 
-	(*pPtrMp3) = mp3;
+	(*pPtrAudio) = audio;
 
 	return hr;
 }
 
-HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrMp3)
+HRESULT AudioPlay::Audio::CreateAudio(_In_opt_z_ LPCWCH path, _COM_Outptr_ Audio** pPtrAudio)
 {
 	HRESULT hr = S_OK;
 
-	if (pPtrMp3 == nullptr)
+	if (pPtrAudio == nullptr)
 	{
 		return E_INVALIDARG;
 	}
 
-	Audio* mp3 = new Audio();
+	Audio* audio = new Audio();
 
 	if (path)
 	{
-		hr = mp3->OpenFile(path);
+		hr = audio->OpenFile(path);
 	}
 
-	(*pPtrMp3) = mp3;
+	(*pPtrAudio) = audio;
 
 	return hr;
 }
